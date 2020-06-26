@@ -1,8 +1,21 @@
-pragma solidity >=0.4.22;
+pragma solidity >=0.4.16;
 
 contract Bole {
-    // The promoter asks questions and pays.
-    struct student{
+    
+    address public owner;
+    constructor() public { owner = msg.sender; }
+    
+    uint public num = 0;
+    mapping(address => uint) idmap;
+    mapping(uint => Registry) regmap;
+    
+    struct Registry{
+        address senderAddr;
+        string name;
+        bool used;
+    }
+    
+    struct question{
         address StudentAddress;
         uint Bounty;
         uint ExpectedTime;
@@ -11,7 +24,7 @@ contract Bole {
 //        mapping(uint => teacher) map;
     }
     
-    struct teacher{
+    struct answer{
         address TeacherAddress;
         uint studentnum;
         uint CompleteTime;
@@ -19,23 +32,35 @@ contract Bole {
         string Answer;
     }
     
+    function Register(string calldata _name) external onlyRegister{
+        num++;
+        idmap[msg.sender] = num;
+        regmap[num] = Registry(msg.sender,_name,true);
+    }
+    
+    
+    
     uint studentAmount = 0;
     mapping(address => uint) Idstudent;
-    mapping(uint => student) studentmap;
+    mapping(uint => question) studentmap;
     
     uint teacherAmount = 0;
     mapping(address => uint) Idteacher;
-    mapping(uint => teacher) teachermap;
+    mapping(uint => answer) teachermap;
 
     function getsender() view public returns(uint,address){
         return (msg.sender.balance,msg.sender);
+    }
+    
+    function getthis() view public returns(address,uint){
+        return (address(this),address(this).balance);
     }
 
     function Newstudent(uint _Bounty,uint _ExpectedTime,string memory _Question) public {
         address _StudentAddress = msg.sender;
         studentAmount++;
         Idstudent[_StudentAddress] = studentAmount;
-        studentmap[studentAmount] = student(_StudentAddress,_Bounty,_ExpectedTime,_Question);
+        studentmap[studentAmount] = question(_StudentAddress,_Bounty,_ExpectedTime,_Question);
     }
     
     function Newteacher(uint _sutdentAmount,string memory _Answer) public{
@@ -43,7 +68,7 @@ contract Bole {
         teacherAmount++;
         uint Pays = 1;
         Idteacher[_TeacherAddress] = teacherAmount;
-        teachermap[teacherAmount] = teacher(_TeacherAddress,_sutdentAmount,now,Pays,_Answer);
+        teachermap[teacherAmount] = answer(_TeacherAddress,_sutdentAmount,now,Pays,_Answer);
         teachermap[_sutdentAmount] = teachermap[teacherAmount];
         
     }
@@ -74,4 +99,35 @@ contract Bole {
         return (a,b,c,d,e);
     }
     
+    function getregistry(uint _num) view public returns(address,string memory){
+        address a = regmap[_num].senderAddr;
+        string memory b = regmap[_num].name;
+        
+        return (a,b);
+    }
+    
+    
+    function Transfer() public payable {
+        address(this).transfer(msg.value);
+    }
+    
+    function () external payable{
+    }
+    function getglobal() view public returns(uint){
+        return tx.gasprice;
+    }
+    function kill() external onlyowner{
+        // if (msg.sender == owner) selfdestruct(address(this));
+        selfdestruct(address(this));
+    }
+    
+    modifier onlyowner(){
+        require(owner == msg.sender,'You are not owner.');
+        _;
+    }
+    
+    modifier onlyRegister(){
+        require(! regmap[idmap[msg.sender]].used,'You have already registered.');
+        _;
+    }
 }
