@@ -28,13 +28,11 @@ contract Bole {
     uint QuestionCount;
     mapping(address => uint) QuestionIdMap;
     mapping(uint => question) QuestionMap;
-    
-    
+
     uint AnswerCount;
     mapping(address => uint) AnswerIdMap;
     mapping(uint => answer) AnswerMap;
-    
-    
+
     function NewQuestion(uint _IdealTime,string memory _Question) public payable{
         require(msg.value > 0,"Bounty cannot be less than 0." );
         address _Questioner = msg.sender;
@@ -74,6 +72,12 @@ contract Bole {
     
     function GetQuestion(uint _QuestionId) view public returns (address,uint,uint,uint,string memory ,uint[] memory){
         
+        return (QuestionMap[_QuestionId].Questioner,QuestionMap[_QuestionId].Bounty,QuestionMap[_QuestionId].IdealTime,QuestionMap[_QuestionId].ReleaseTime,QuestionMap[_QuestionId].Question,QuestionMap[_QuestionId].AnswerPool);
+    }
+    
+    function GetAnswerIdQuestion(uint _AnswerId) view public returns (address,uint,uint,uint,string memory ,uint[] memory){
+        
+        uint _QuestionId = AnswerMap[_AnswerId].AnswerNum;
         return (QuestionMap[_QuestionId].Questioner,QuestionMap[_QuestionId].Bounty,QuestionMap[_QuestionId].IdealTime,QuestionMap[_QuestionId].ReleaseTime,QuestionMap[_QuestionId].Question,QuestionMap[_QuestionId].AnswerPool);
     }
 }
