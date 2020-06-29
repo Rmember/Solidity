@@ -1,0 +1,79 @@
+pragma solidity >=0.4.16;
+
+contract Bole {
+    
+    address public Owner;
+    constructor() public { Owner = msg.sender;}
+    uint[]  QuestionWait;
+    uint[]  QuestionFinish;
+    
+    
+    struct question{
+        address Questioner;
+        uint Bounty;
+        uint IdealTime;
+        uint ReleaseTime;
+        string Question;
+        uint[] AnswerPool;
+    }    
+    
+    struct answer{
+        address Respondent;
+        uint AnswerNum;
+        uint FinishTime;
+        uint Income;
+        string Answer;
+    }
+    
+    uint QuestionCount;
+    mapping(address => uint) QuestionIdMap;
+    mapping(uint => question) QuestionMap;
+    
+    
+    uint AnswerCount;
+    mapping(address => uint) AnswerIdMap;
+    mapping(uint => answer) AnswerMap;
+    
+    
+    function NewQuestion(uint _IdealTime,string memory _Question) public payable{
+        require(msg.value > 0,"Bounty cannot be less than 0." );
+        address _Questioner = msg.sender;
+        uint _Bounty = msg.value;
+        uint _ReleaseTime = now;
+        uint[] memory _AnswerPool;
+        QuestionCount++;
+        QuestionWait.push(QuestionCount);
+        QuestionIdMap[_Questioner] = QuestionCount;
+        QuestionMap[QuestionCount] = question(_Questioner,_Bounty,_IdealTime,_ReleaseTime,_Question,_AnswerPool);
+        
+    }
+    
+    function GetQuestionLength() view public returns(uint,uint){
+        return (QuestionWait.length,QuestionFinish.length);
+    }
+    function GetQuestionWait() view public returns(uint[] memory){
+        return QuestionWait;
+    }
+    
+    function NewAnswer(uint _QuestionId,string memory _Answer) public {
+        address _Respondent = msg.sender;
+        uint _FinishTime = now;
+        AnswerCount++;
+        QuestionMap[_QuestionId].AnswerPool.push(AnswerCount);
+        AnswerIdMap[_Respondent] = AnswerCount;
+        AnswerMap[AnswerCount] = answer(_Respondent,_QuestionId,_FinishTime,0,_Answer);
+    }
+
+    function GetAnswerLength(uint _QuestionId) view public returns(uint){
+        return QuestionMap[_QuestionId].AnswerPool.length;
+    }
+    function GetAnswer(uint _AnswerId) view public returns(address,uint,uint,uint,string memory){
+        
+        return (AnswerMap[_AnswerId].Respondent,AnswerMap[_AnswerId].AnswerNum,AnswerMap[_AnswerId].FinishTime,AnswerMap[_AnswerId].Income,AnswerMap[_AnswerId].Answer);
+    }
+    
+    function GetQuestion(uint _QuestionId) view public returns (address,uint,uint,uint,string memory ,uint[] memory){
+        
+        return (QuestionMap[_QuestionId].Questioner,QuestionMap[_QuestionId].Bounty,QuestionMap[_QuestionId].IdealTime,QuestionMap[_QuestionId].ReleaseTime,QuestionMap[_QuestionId].Question,QuestionMap[_QuestionId].AnswerPool);
+    }
+}
